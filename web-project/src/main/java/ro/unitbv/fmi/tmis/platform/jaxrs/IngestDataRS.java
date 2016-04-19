@@ -1,6 +1,9 @@
 package ro.unitbv.fmi.tmis.platform.jaxrs;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -10,6 +13,7 @@ import javax.ws.rs.QueryParam;
 
 import ro.unitbv.fmi.tmis.platform.exception.InvalidParameterException;
 import ro.unitbv.fmi.tmis.platform.netcdf.NetCdfUtils;
+import ro.unitbv.fmi.tmis.platform.service.HdfsService;
 import ro.unitbv.fmi.tmis.platform.utils.ConfigKey;
 import ro.unitbv.fmi.tmis.platform.utils.Configuration;
 import ro.unitbv.fmi.tmis.platform.utils.Constants;
@@ -23,9 +27,12 @@ public class IngestDataRS {
 	@Inject
 	private Configuration conf;
 
+	@Inject
+	private HdfsService hdfsService;
+
 	private void ingest(int startYear, int endYear, String regionName,
 			int minLat, int maxLat, int minLon, int maxLon) throws IOException,
-			InvalidRangeException {
+			InvalidRangeException, URISyntaxException, ParseException {
 		for (int year = startYear; year <= endYear; year++) {
 			NetCdfUtils netCdfUtils = new NetCdfUtils(year, regionName);
 
@@ -33,7 +40,12 @@ public class IngestDataRS {
 			System.out.println("MaxLat: " + maxLat);
 			System.out.println("MinLon: " + minLon);
 			System.out.println("MaxLon: " + maxLon);
-			netCdfUtils.writePrecipitation(minLat, maxLat, minLon, maxLon);
+			File outputFile = netCdfUtils.writePrecipitation(minLat, maxLat,
+			 minLon, maxLon);
+			//File file = new File(
+			//		"/root/Dizertatie/Software/wildfly-9.0.2.Final/data/extracted/test-region2/precipitatii/2016.csv");
+			//hdfsService.uploadFile("turism/" + regionName + "/precipitatii",
+			//		file);
 		}
 	}
 
@@ -150,7 +162,7 @@ public class IngestDataRS {
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLon") Double maxLon,
 			@NotNull(message = "Region name must not be null") @QueryParam("regionName") String regionName,
 			@QueryParam("year") int year) throws IOException,
-			InvalidRangeException {
+			InvalidRangeException, URISyntaxException, ParseException {
 		System.out.println("Ingestion job was called...");
 
 		// constants.getLatitudes();

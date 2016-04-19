@@ -87,8 +87,9 @@ public class NetCdfUtils {
 		System.out.println(dateFormat.format(calendar.getTime()));
 	}
 
-	public void writePrecipitation(int latMin, int latMax, int lonMin,
-			int lonMax) throws InvalidRangeException, IOException {
+	public File writePrecipitation(int latMin, int latMax, int lonMin,
+			int lonMax) throws InvalidRangeException, IOException,
+			ParseException {
 		String outputFolderLocation = SERVER_LOCATION + "/data/extracted/"
 				+ regionName + "/precipitatii";
 		File outputFolder = new File(outputFolderLocation);
@@ -110,6 +111,13 @@ public class NetCdfUtils {
 		Array results = prVar.read(ranges);
 		Index index = results.getIndex();
 
+		double startDay = getTime(cdfFile, 0);
+		double currentDay = startDay;
+		Calendar calendar = Calendar.getInstance();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Date startDate = dateFormat.parse(year + "-01-01");
+		calendar.setTime(startDate);
+
 		try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(outputFile)))) {
 			for (int i = 0; i < shapes[0]; i++) {
@@ -120,14 +128,22 @@ public class NetCdfUtils {
 						String valString = String.format("%.15f",
 								val * 86400 * 1000 / 1000);
 
-						String line = getTime(cdfFile, i) + ","
-								+ getLat(cdfFile, j + latMin) + ","
+						double nextDay = getTime(cdfFile, i);
+						if (nextDay - currentDay > 0) {
+							calendar.add(Calendar.DAY_OF_YEAR,
+									(int) (nextDay - currentDay));
+							currentDay = nextDay;
+						}
+						String line = dateFormat.format(calendar.getTime())
+								+ "," + getLat(cdfFile, j + latMin) + ","
 								+ getLon(cdfFile, k + lonMin) + "," + valString;
 
 						bw.write(line + "\n");
 					}
 				}
 			}
+
+			return outputFile;
 		}
 	}
 }
