@@ -1,8 +1,8 @@
 package ro.unitbv.fmi.tmis.platform.service;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Set;
 
 import javax.ejb.Stateless;
@@ -18,11 +18,10 @@ import javax.ws.rs.core.Response;
 
 import ro.unitbv.fmi.tmis.platform.utils.ConfigKey;
 import ro.unitbv.fmi.tmis.platform.utils.Configuration;
-import sun.awt.AWTAccessor.ClientPropertyKeyAccessor;
 
 @Named
 @Stateless
-public class HdfsService {
+public class HdfsServiceRest {
 	@Inject
 	Configuration config;
 
@@ -54,24 +53,34 @@ public class HdfsService {
 		createDirectory(path);
 
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client
-				.target(host + ":" + port)
-				.path("/webhdfs/v1/user/" + user + "/" + path + "/"
-						+ file.getName()).queryParam("user.name", user)
-				.queryParam("op", "CREATE").queryParam("overwrite", true);
+		WebTarget target = client.target(host + ":" + port)
+				.path("/webhdfs/v1/user/" + user + "/" + path + file.getName())
+				.queryParam("user.name", user).queryParam("op", "CREATE")
+				.queryParam("overwrite", true);
 		Response response = target.request().put(null);
 		// Response.temporaryRedirect(new URI("")).entity(null).
 		// String header = response.getHeaderString("Set-Cookie");
 		// System.out.println("Header: " + header);
 
-		MultivaluedMap<String, Object> headers = response.getHeaders();
-		Set<String> headersName = headers.keySet();
+		// MultivaluedMap<String, Object> headers = response.getHeaders();
+		// Set<String> headersName = headers.keySet();
 		/*
 		 * for (String name : headersName) { System.out.println(name + ":" +
 		 * headers.get(name)); }
 		 */
-		String location = response.getHeaderString("Location");
-		System.out.println("Location -> " + location);
+
+		String location = null;
+		MultivaluedMap<String, Object> headers = response.getMetadata();
+		Set<String> headersName = headers.keySet();
+		for (String name : headersName) {
+			System.out.println(name + ":" + headers.get(name));
+			if (name.equals("Location")) {
+				location = (String) headers.get(name).get(0);
+			}
+		}
+
+		// String location = response.getHeaderString("Location");
+		// /System.out.println("Location -> " + location);
 
 		Client client2 = ClientBuilder.newClient();
 		response = client2.target(location).request()

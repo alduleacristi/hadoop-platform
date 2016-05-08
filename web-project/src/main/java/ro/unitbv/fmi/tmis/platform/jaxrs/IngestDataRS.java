@@ -9,11 +9,24 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
+import ro.unitbv.fmi.tmis.platform.exception.FailedToSaveException;
 import ro.unitbv.fmi.tmis.platform.exception.InvalidParameterException;
-import ro.unitbv.fmi.tmis.platform.netcdf.NetCdfUtils;
-import ro.unitbv.fmi.tmis.platform.service.HdfsService;
+import ro.unitbv.fmi.tmis.platform.model.Points;
+import ro.unitbv.fmi.tmis.platform.model.Points.Point;
+import ro.unitbv.fmi.tmis.platform.model.Region;
+import ro.unitbv.fmi.tmis.platform.netcdf.DataExtractor;
+import ro.unitbv.fmi.tmis.platform.netcdf.exceptions.VarNotFoundException;
+import ro.unitbv.fmi.tmis.platform.netcdf.utils.DataType;
+import ro.unitbv.fmi.tmis.platform.service.HdfsServiceRest;
 import ro.unitbv.fmi.tmis.platform.utils.ConfigKey;
 import ro.unitbv.fmi.tmis.platform.utils.Configuration;
 import ro.unitbv.fmi.tmis.platform.utils.Constants;
@@ -23,30 +36,88 @@ import ucar.ma2.InvalidRangeException;
 public class IngestDataRS {
 	@Inject
 	private Constants constants;
-
 	@Inject
 	private Configuration conf;
-
 	@Inject
-	private HdfsService hdfsService;
+	private HdfsServiceRest hdfsService;
+	@Inject
+	private DataExtractor precipitationExtractor;
+	@Inject
+	private RegionDAO regionDAO;
+
+	private String getPathInHdfs(DataType dataType) {
+		switch (dataType) {
+		case PRECIPITATION: {
+			return (String) conf.getProperty(ConfigKey.HDFS_PRECIPITATIONS_PATH
+					.getKeyValue());
+		}
+		case MAX_TEMP: {
+			return (String) conf.getProperty(ConfigKey.HDFS_MAX_TEMP_PATH
+					.getKeyValue());
+		}
+		case MIN_TEMP: {
+			return (String) conf.getProperty(ConfigKey.HDFS_MIN_TEMP_PATH
+					.getKeyValue());
+		}
+		}
+
+		return null;
+	}
+
+	private File extractDataAndUploadInHdfs(int minLat, int maxLat, int minLon,
+			int maxLon, int year, String regionName, DataType dataType)
+			throws InvalidRangeException, IOException, ParseException,
+			VarNotFoundException, URISyntaxException {
+		System.out.println("Try to extract [" + dataType.toString()
+				+ "] for year [" + year + "]");
+		File file = precipitationExtractor.extractAndWriteData(minLat, maxLat,
+				minLon, maxLon, year, regionName, dataType);
+
+		hdfsService.uploadFile(
+				getPathInHdfs(dataType) + "/" + regionName + "/", file);
+		// file.delete();
+
+		return file;
+	}
 
 	private void ingest(int startYear, int endYear, String regionName,
-			int minLat, int maxLat, int minLon, int maxLon) throws IOException,
-			InvalidRangeException, URISyntaxException, ParseException {
+			int minLat, int maxLat, int minLon, int maxLon) throws Exception {
 		for (int year = startYear; year <= endYear; year++) {
-			NetCdfUtils netCdfUtils = new NetCdfUtils(year, regionName);
-
-			System.out.println("MinLat: " + minLat);
-			System.out.println("MaxLat: " + maxLat);
-			System.out.println("MinLon: " + minLon);
-			System.out.println("MaxLon: " + maxLon);
-			File outputFile = netCdfUtils.writePrecipitation(minLat, maxLat,
-			 minLon, maxLon);
-			//File file = new File(
-			//		"/root/Dizertatie/Software/wildfly-9.0.2.Final/data/extracted/test-region2/precipitatii/2016.csv");
-			//hdfsService.uploadFile("turism/" + regionName + "/precipitatii",
-			//		file);
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.PRECIPITATION);
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.MAX_TEMP);
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.MIN_TEMP);
 		}
+		System.out.println("!!! After for");
+
+		// System.out.println("Start Hadoop Job for ingestion...");
+		// IngestJob ingestJob = new IngestJob();
+		// String vars[] = { "/user/root/input", "/user/root/output",
+		// "test-region", "prec" };
+
+		// int result = ToolRunner.run(new
+		// org.apache.hadoop.conf.Configuration(),
+		// new IngestJob(), vars);
+		// System.out.println("!!! Result of the map-reduce job -> " + result);
+		// Process p = Runtime
+		// .getRuntime()
+		// .exec("yarn jar /root/Disertatie/Jobs/Map-Reduce/ingestJob.jar /user/root/input /user/root/output test-region prec");
+		// int status = p.waitFor();
+
+		// BufferedReader reader = new BufferedReader(new InputStreamReader(
+		// p.getInputStream()));
+
+		// String line = "";
+		// StringBuilder sb = new StringBuilder();
+		// while ((line = reader.readLine()) != null) {
+		// sb.append(line + "\n");
+		// }
+
+		// System.out.println("Results of the job: " + sb);
+		// System.out.println();
+		// System.out.println("Status returned by job: " + status);
 	}
 
 	private int getMinLatId(double lat) {
@@ -85,8 +156,8 @@ public class IngestDataRS {
 
 	private int getMaxLatId(double lat) {
 		if (lat < -90 || lat > 90) {
-			throw new InvalidParameterException(
-					"Max lat must be between -90 and 90");
+			throw new InvalidParameterException(lat
+					+ "Max lat must be between -90 and 90");
 		}
 
 		if (lat >= 0) {
@@ -153,37 +224,71 @@ public class IngestDataRS {
 		return constants.getIdOfLongitude(maxLon);
 	}
 
+	private void saveRegion(int startYear, int endYear, double minLat,
+			double maxLat, double minLon, double maxLon, String regionName)
+			throws JsonGenerationException, JsonMappingException, IOException,
+			FailedToSaveException {
+		Points.Point point1 = new Point(2.5, 7.0);
+		Points.Point point2 = new Point(3.5, 8.0);
+		Points.Point point3 = new Point(4.5, 9.0);
+
+		Points points = new Points();
+		points.getPoints().add(point1);
+		points.getPoints().add(point2);
+		points.getPoints().add(point3);
+
+		Region region = new Region();
+		region.setName(regionName);
+		region.setStartYear(startYear);
+		region.setEndYear(endYear);
+		region.setMaxLat(maxLat);
+		region.setMinLat(minLat);
+		region.setMinLon(minLon);
+		region.setMaxLon(maxLon);
+		regionDAO.saveRegion(region);
+
+		ObjectMapper mapper = new ObjectMapper();
+		System.out.println("!!!JSON value: "
+				+ mapper.writeValueAsString(points));
+	}
+
 	@POST
 	@Path("/ingest/region")
+	@Produces(MediaType.TEXT_PLAIN)
 	public String ingestData(
 			@NotNull(message = "Min Lat param must not be null") @QueryParam("minLat") Double minLat,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLat") Double maxLat,
 			@NotNull(message = "Min Lon param must not be null") @QueryParam("minLon") Double minLon,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLon") Double maxLon,
 			@NotNull(message = "Region name must not be null") @QueryParam("regionName") String regionName,
-			@QueryParam("year") int year) throws IOException,
-			InvalidRangeException, URISyntaxException, ParseException {
+			@QueryParam("year") int year) throws Exception {
 		System.out.println("Ingestion job was called...");
 
-		// constants.getLatitudes();
-		if (year == 0) {
-			Integer yearI = (Integer) conf
-					.getProperty(ConfigKey.TURISM_REGIONS_NR_OF_YEARS
-							.getKeyValue());
+		String nrOfYears = (String) conf
+				.getProperty(ConfigKey.TURISM_REGIONS_NR_OF_YEARS.getKeyValue());
+		Integer yearI = Integer.valueOf(nrOfYears);
 
+		// constants.getLatitudes();
+
+		if (year == 0) {
 			ingest(yearI, yearI, regionName, getMinLatId(minLat),
 					getMaxLatId(maxLat), getMinLonId(minLon),
 					getMaxLonId(maxLon));
+			System.out.println("!!! After ingest method in if");
 		} else {
 			if (year < 0 || year < 1950 || year > 2099) {
 				throw new InvalidParameterException(
 						"The year must be between 1950 and 2099");
 			} else {
-				ingest(year, year, regionName, getMinLatId(minLat),
-						getMaxLatId(maxLat), getMinLonId(minLon),
-						getMaxLonId(maxLon));
+				ingest(year - yearI / 2, year + yearI / 2, regionName,
+						getMinLatId(minLat), getMaxLatId(maxLat),
+						getMinLonId(minLon), getMaxLonId(maxLon));
+				System.out.println("!!! After ingest method in else");
 			}
 		}
+
+		saveRegion(year - yearI / 2, year + yearI / 2, minLat, maxLat, minLon,
+				maxLon, regionName);
 
 		return "Data was ingested with success";
 	}

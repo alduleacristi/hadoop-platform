@@ -58,15 +58,15 @@ public class Main {
 		 * { e.printStackTrace(); }
 		 */
 
-		NetCdfUtils cdfInstance = new NetCdfUtils(2010, "test-region");
+		//NetCdfUtils cdfInstance = new NetCdfUtils(2015, "test-region");
 
 		File outputFile = new File(
-				"/root/Dizertatie/Software/wildfly-9.0.2.Final/data/extracted/precipitatii/2010.csv");
-		// outputFile.mkdirs();
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(outputFile)));
-		//cdfInstance.writePrecipitation(-0.376, -0.376, 0.124, 0.126);
-		bw.close();
+				"/root/Desktop/2010.csv");
+		//outputFile.mkdirs();
+		//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+		//		new FileOutputStream(outputFile)));
+		//cdfInstance.writePrecipitation(212, 222, 95, 104);
+		//bw.close();
 
 		/*
 		 * Configuration conf = new Configuration(); Path out = new

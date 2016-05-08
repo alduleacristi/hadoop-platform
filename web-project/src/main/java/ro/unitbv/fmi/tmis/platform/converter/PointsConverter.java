@@ -15,13 +15,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Converter
 public class PointsConverter implements AttributeConverter<Points, PGobject> {
+	// public class PointsConverter implements AttributeConverter<Points,
+	// String> {
 
 	@Override
 	public PGobject convertToDatabaseColumn(Points point) {
 		try {
-			PGobject po = new PGobject();
-			// here we tell Postgres to use JSON as type to treat our json
+			PGobject po = new PGobject(); // here we tell Postgres to use JSON
+											// as type to treat our json
 			po.setType("json");
+
 			// this is Jackson already added as dependency to project, it could
 			// be any JSON marshaller
 			String str = (new ObjectMapper()).writeValueAsString(point);
@@ -51,5 +54,20 @@ public class PointsConverter implements AttributeConverter<Points, PGobject> {
 			return null;
 		}
 	}
+
+	private final static ObjectMapper objectMapper = new ObjectMapper();
+
+	/*
+	 * @Override public String convertToDatabaseColumn(@NotNull Points
+	 * myCustomObject) { try { return
+	 * objectMapper.writeValueAsString(myCustomObject); } catch (Exception ex) {
+	 * return null; } }
+	 * 
+	 * @Override public Points convertToEntityAttribute(
+	 * 
+	 * @NotNull String databaseDataAsJSONString) { try { return
+	 * objectMapper.readValue(databaseDataAsJSONString, Points.class); } catch
+	 * (Exception ex) { return null; } }
+	 */
 
 }

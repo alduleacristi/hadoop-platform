@@ -1,3 +1,4 @@
+package ro.unitbv.fmi.tmis.platform.hive.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -20,7 +21,7 @@ public class Main {
 				"jdbc:hive2://localhost:10000/default", "", "");
 		Statement stmt = con.createStatement();
 
-		stmt.executeQuery("CREATE DATABASE userdb");
+		stmt.executeQuery("CREATE DATABASE test2");
 		System.out.println("Database userdb created successfully.");
 
 		con.close();

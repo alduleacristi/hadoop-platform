@@ -13,6 +13,7 @@ repositories {
 dependencies {
 	compile project(":hive-project")
 	compile project(":net-cdf-project")
+	//compile project(":mapreduce-project")
 	
 	compile 'commons-collections:commons-collections:3.2'
     testCompile 'junit:junit:4.+'
@@ -26,5 +27,5 @@ war.archiveName = "platform-server.war"
 
 task deployToWildfly(type: Copy) {
 	from war.archivePath
-	into "/root/Dizertatie/Software/wildfly-9.0.2.Final/standalone/deployments"
+	into "/root/Disertatie/Software/wildfly-9.0.2.Final/standalone/deployments"
 }

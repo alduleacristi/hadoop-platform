@@ -1,3 +1,4 @@
 include 'web-project'
 include 'hive-project'
 include 'net-cdf-project'
+include 'mapreduce-project'

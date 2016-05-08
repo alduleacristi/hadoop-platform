@@ -1,4 +1,4 @@
-package ro.unitbv.fmi.tmis.platform.netcdf;
+package ro.unitbv.fmi.tmis.platform.mapreduce.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +13,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.hadoop.mapreduce.Mapper.Context;
+
+import ro.unitbv.fmi.tmis.platform.mapreduce.model.Precipitation;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
@@ -21,21 +24,15 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 public class NetCdfUtils {
-	private final String SERVER_LOCATION;
-
 	private NetcdfFile cdfFile;
 	private int year;
-	private String regionName;
+	//private String regionName;
 
-	public NetCdfUtils(int year, String regionName) throws IOException {
-		this.year = year;
-		this.regionName = regionName;
-		SERVER_LOCATION = System.getProperty("jboss.server.home.dir");
+	public NetCdfUtils(String fileLocation) throws IOException {
+		System.out.println("!!! In NetCdfUitls constructor");
 
-		String fileLocation = SERVER_LOCATION
-				+ "/data/nasa/precipitatii/pr_day_BCSD_rcp45_r1i1p1_ACCESS1-0_"
-				+ year + ".nc";
 		cdfFile = NetcdfFile.open(fileLocation);
+		System.out.println("!!! Before exit the constructor...");
 	}
 
 	public double getTime(NetcdfFile cdfFile, int id)
@@ -87,18 +84,12 @@ public class NetCdfUtils {
 		System.out.println(dateFormat.format(calendar.getTime()));
 	}
 
-	public File writePrecipitation(int latMin, int latMax, int lonMin,
-			int lonMax) throws InvalidRangeException, IOException,
-			ParseException {
-		String outputFolderLocation = SERVER_LOCATION + "/data/extracted/"
-				+ regionName + "/precipitatii";
-		File outputFolder = new File(outputFolderLocation);
-		outputFolder.mkdirs();
-		File outputFile = new File(outputFolder, year + ".csv");
+	public void writePrecipitation(int latMin, int latMax, int lonMin,
+			int lonMax, Context ctx) throws InvalidRangeException, IOException,
+			ParseException, InterruptedException {
 
 		Variable prVar = cdfFile.findVariable("pr");
 		int shapes[] = prVar.getShape();
-		// System.out.println(shapes.length);
 
 		List<Range> ranges = new ArrayList<Range>();
 		Range rangeTime = new Range(0, shapes[0] - 1);
@@ -118,32 +109,29 @@ public class NetCdfUtils {
 		Date startDate = dateFormat.parse(year + "-01-01");
 		calendar.setTime(startDate);
 
-		try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(outputFile)))) {
-			for (int i = 0; i < shapes[0]; i++) {
-				for (int j = 0; j < latMax - latMin + 1; j++) {
-					for (int k = 0; k < lonMax - lonMin + 1; k++) {
-						index.set(i, j, k);
-						double val = results.getDouble(index);
-						String valString = String.format("%.15f",
-								val * 86400 * 1000 / 1000);
+		for (int i = 0; i < shapes[0]; i++) {
+			for (int j = 0; j < latMax - latMin + 1; j++) {
+				for (int k = 0; k < lonMax - lonMin + 1; k++) {
+					index.set(i, j, k);
+					double val = results.getDouble(index);
+					val = val * 86400 * 1000 / 1000;
+					String valString = String.format("%.15f",
+							val * 86400 * 1000 / 1000);
 
-						double nextDay = getTime(cdfFile, i);
-						if (nextDay - currentDay > 0) {
-							calendar.add(Calendar.DAY_OF_YEAR,
-									(int) (nextDay - currentDay));
-							currentDay = nextDay;
-						}
-						String line = dateFormat.format(calendar.getTime())
-								+ "," + getLat(cdfFile, j + latMin) + ","
-								+ getLon(cdfFile, k + lonMin) + "," + valString;
-
-						bw.write(line + "\n");
+					double nextDay = getTime(cdfFile, i);
+					if (nextDay - currentDay > 0) {
+						calendar.add(Calendar.DAY_OF_YEAR,
+								(int) (nextDay - currentDay));
+						currentDay = nextDay;
 					}
+
+					Precipitation prec = new Precipitation(calendar.getTime(),
+							getLat(cdfFile, j + latMin), getLon(cdfFile, k
+									+ lonMin), val);
+
+					ctx.write(null, prec);
 				}
 			}
-
-			return outputFile;
 		}
 	}
 }
