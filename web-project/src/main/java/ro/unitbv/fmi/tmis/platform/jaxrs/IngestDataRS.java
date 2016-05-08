@@ -12,12 +12,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
+import ro.unitbv.fmi.tmis.platform.exception.AlreadyExistException;
 import ro.unitbv.fmi.tmis.platform.exception.FailedToSaveException;
 import ro.unitbv.fmi.tmis.platform.exception.InvalidParameterException;
 import ro.unitbv.fmi.tmis.platform.model.Points;
@@ -90,34 +93,6 @@ public class IngestDataRS {
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
 					regionName, DataType.MIN_TEMP);
 		}
-		System.out.println("!!! After for");
-
-		// System.out.println("Start Hadoop Job for ingestion...");
-		// IngestJob ingestJob = new IngestJob();
-		// String vars[] = { "/user/root/input", "/user/root/output",
-		// "test-region", "prec" };
-
-		// int result = ToolRunner.run(new
-		// org.apache.hadoop.conf.Configuration(),
-		// new IngestJob(), vars);
-		// System.out.println("!!! Result of the map-reduce job -> " + result);
-		// Process p = Runtime
-		// .getRuntime()
-		// .exec("yarn jar /root/Disertatie/Jobs/Map-Reduce/ingestJob.jar /user/root/input /user/root/output test-region prec");
-		// int status = p.waitFor();
-
-		// BufferedReader reader = new BufferedReader(new InputStreamReader(
-		// p.getInputStream()));
-
-		// String line = "";
-		// StringBuilder sb = new StringBuilder();
-		// while ((line = reader.readLine()) != null) {
-		// sb.append(line + "\n");
-		// }
-
-		// System.out.println("Results of the job: " + sb);
-		// System.out.println();
-		// System.out.println("Status returned by job: " + status);
 	}
 
 	private int getMinLatId(double lat) {
@@ -224,19 +199,10 @@ public class IngestDataRS {
 		return constants.getIdOfLongitude(maxLon);
 	}
 
-	private void saveRegion(int startYear, int endYear, double minLat,
+	private Region saveRegion(int startYear, int endYear, double minLat,
 			double maxLat, double minLon, double maxLon, String regionName)
 			throws JsonGenerationException, JsonMappingException, IOException,
-			FailedToSaveException {
-		Points.Point point1 = new Point(2.5, 7.0);
-		Points.Point point2 = new Point(3.5, 8.0);
-		Points.Point point3 = new Point(4.5, 9.0);
-
-		Points points = new Points();
-		points.getPoints().add(point1);
-		points.getPoints().add(point2);
-		points.getPoints().add(point3);
-
+			FailedToSaveException, AlreadyExistException {
 		Region region = new Region();
 		region.setName(regionName);
 		region.setStartYear(startYear);
@@ -245,51 +211,61 @@ public class IngestDataRS {
 		region.setMinLat(minLat);
 		region.setMinLon(minLon);
 		region.setMaxLon(maxLon);
-		regionDAO.saveRegion(region);
 
-		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("!!!JSON value: "
-				+ mapper.writeValueAsString(points));
+		return regionDAO.saveRegion(region);
 	}
 
 	@POST
 	@Path("/ingest/region")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String ingestData(
+	public Response ingestData(
 			@NotNull(message = "Min Lat param must not be null") @QueryParam("minLat") Double minLat,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLat") Double maxLat,
 			@NotNull(message = "Min Lon param must not be null") @QueryParam("minLon") Double minLon,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLon") Double maxLon,
 			@NotNull(message = "Region name must not be null") @QueryParam("regionName") String regionName,
-			@QueryParam("year") int year) throws Exception {
+			@QueryParam("year") int year) throws AlreadyExistException {
 		System.out.println("Ingestion job was called...");
 
 		String nrOfYears = (String) conf
 				.getProperty(ConfigKey.TURISM_REGIONS_NR_OF_YEARS.getKeyValue());
 		Integer yearI = Integer.valueOf(nrOfYears);
+		Region region = null;
 
-		// constants.getLatitudes();
+		try {
+			region = saveRegion(year - yearI / 2, year + yearI / 2, minLat,
+					maxLat, minLon, maxLon, regionName);
 
-		if (year == 0) {
-			ingest(yearI, yearI, regionName, getMinLatId(minLat),
-					getMaxLatId(maxLat), getMinLonId(minLon),
-					getMaxLonId(maxLon));
-			System.out.println("!!! After ingest method in if");
-		} else {
-			if (year < 0 || year < 1950 || year > 2099) {
-				throw new InvalidParameterException(
-						"The year must be between 1950 and 2099");
+			if (year == 0) {
+				ingest(yearI, yearI, regionName, getMinLatId(minLat),
+						getMaxLatId(maxLat), getMinLonId(minLon),
+						getMaxLonId(maxLon));
+				System.out.println("!!! After ingest method in if");
 			} else {
-				ingest(year - yearI / 2, year + yearI / 2, regionName,
-						getMinLatId(minLat), getMaxLatId(maxLat),
-						getMinLonId(minLon), getMaxLonId(maxLon));
-				System.out.println("!!! After ingest method in else");
+				if (year < 0 || year < 1950 || year > 2099) {
+					throw new InvalidParameterException(
+							"The year must be between 1950 and 2099");
+				} else {
+					ingest(year - yearI / 2, year + yearI / 2, regionName,
+							getMinLatId(minLat), getMaxLatId(maxLat),
+							getMinLonId(minLon), getMaxLonId(maxLon));
+					System.out.println("!!! After ingest method in else");
+				}
+			}
+		} catch (AlreadyExistException aex) {
+			aex.printStackTrace();
+			throw aex;
+		} catch (Exception e) {
+			e.printStackTrace();
+			try {
+				if (region != null) {
+					regionDAO.deleteRegion(region.getId());
+				}
+			} catch (Exception exc) {
+				exc.printStackTrace();
 			}
 		}
 
-		saveRegion(year - yearI / 2, year + yearI / 2, minLat, maxLat, minLon,
-				maxLon, regionName);
-
-		return "Data was ingested with success";
+		return Response.ok().build();
 	}
 }
