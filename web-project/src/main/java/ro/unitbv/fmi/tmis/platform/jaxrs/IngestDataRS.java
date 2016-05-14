@@ -68,13 +68,13 @@ public class IngestDataRS {
 	}
 
 	private File extractDataAndUploadInHdfs(int minLat, int maxLat, int minLon,
-			int maxLon, int year, String regionName, DataType dataType)
-			throws InvalidRangeException, IOException, ParseException,
-			VarNotFoundException, URISyntaxException {
+			int maxLon, int year, String regionName, DataType dataType,
+			long regionId) throws InvalidRangeException, IOException,
+			ParseException, VarNotFoundException, URISyntaxException {
 		System.out.println("Try to extract [" + dataType.toString()
 				+ "] for year [" + year + "]");
 		File file = precipitationExtractor.extractAndWriteData(minLat, maxLat,
-				minLon, maxLon, year, regionName, dataType);
+				minLon, maxLon, year, regionName, dataType, regionId);
 
 		hdfsService.uploadFile(
 				getPathInHdfs(dataType) + "/" + regionName + "/", file);
@@ -84,14 +84,15 @@ public class IngestDataRS {
 	}
 
 	private void ingest(int startYear, int endYear, String regionName,
-			int minLat, int maxLat, int minLon, int maxLon) throws Exception {
+			int minLat, int maxLat, int minLon, int maxLon, long regionId)
+			throws Exception {
 		for (int year = startYear; year <= endYear; year++) {
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
-					regionName, DataType.PRECIPITATION);
+					regionName, DataType.PRECIPITATION, regionId);
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
-					regionName, DataType.MAX_TEMP);
+					regionName, DataType.MAX_TEMP, regionId);
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
-					regionName, DataType.MIN_TEMP);
+					regionName, DataType.MIN_TEMP, regionId);
 		}
 	}
 
@@ -239,7 +240,7 @@ public class IngestDataRS {
 			if (year == 0) {
 				ingest(yearI, yearI, regionName, getMinLatId(minLat),
 						getMaxLatId(maxLat), getMinLonId(minLon),
-						getMaxLonId(maxLon));
+						getMaxLonId(maxLon), region.getId());
 				System.out.println("!!! After ingest method in if");
 			} else {
 				if (year < 0 || year < 1950 || year > 2099) {
@@ -248,7 +249,8 @@ public class IngestDataRS {
 				} else {
 					ingest(year - yearI / 2, year + yearI / 2, regionName,
 							getMinLatId(minLat), getMaxLatId(maxLat),
-							getMinLonId(minLon), getMaxLonId(maxLon));
+							getMinLonId(minLon), getMaxLonId(maxLon),
+							region.getId());
 					System.out.println("!!! After ingest method in else");
 				}
 			}

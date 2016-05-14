@@ -36,7 +36,7 @@ public class PrecipitationDAO {
 		Statement loadData = con.createStatement();
 		loadData.execute("USE " + dbName);
 
-		String sql = "ALTER TABLE precipitation" + " ADD PARTITION (id = "
+		String sql = "ALTER TABLE precipitation" + " ADD PARTITION (regionId = "
 				+ regionId + ") LOCATION '" + path + "'";
 
 		loadData.execute(sql);

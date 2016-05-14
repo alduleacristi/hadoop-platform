@@ -121,9 +121,9 @@ public class DataExtractor {
 	}
 
 	public File extractAndWriteData(int latMin, int latMax, int lonMin,
-			int lonMax, int year, String regionName, DataType dataType)
-			throws InvalidRangeException, IOException, ParseException,
-			VarNotFoundException {
+			int lonMax, int year, String regionName, DataType dataType,
+			long regionId) throws InvalidRangeException, IOException,
+			ParseException, VarNotFoundException {
 
 		File outputFile = initialize(year, regionName, dataType);
 
@@ -174,7 +174,7 @@ public class DataExtractor {
 						String line = dateFormat.format(calendar.getTime())
 								+ "," + NetCdfUtils.getLat(cdfFile, j + latMin)
 								+ "," + NetCdfUtils.getLon(cdfFile, k + lonMin)
-								+ "," + valString;
+								+ "," + valString + "," + regionId;
 
 						bw.write(line + "\n");
 					}
