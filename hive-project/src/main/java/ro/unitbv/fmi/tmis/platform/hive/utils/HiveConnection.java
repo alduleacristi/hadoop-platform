@@ -38,10 +38,6 @@ public class HiveConnection {
 	@PostConstruct
 	private void initialize() throws IOException {
 		readConfFile();
-		System.out
-				.println("### In hive connection postconstruct..."
-						+ properties.getProperty(HiveConfigKey.HIVE_HOST
-								.getKeyValue()));
 		ds = new BasicDataSource();
 
 		ds.setDriverClassName(properties.getProperty(HiveConfigKey.HIVE_DRIVER
