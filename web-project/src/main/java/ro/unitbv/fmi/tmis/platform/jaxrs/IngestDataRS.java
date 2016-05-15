@@ -240,7 +240,7 @@ public class IngestDataRS {
 			if (year == 0) {
 				ingest(yearI, yearI, regionName, getMinLatId(minLat),
 						getMaxLatId(maxLat), getMinLonId(minLon),
-						getMaxLonId(maxLon), region.getId());
+						getMaxLonId(maxLon), region.getIdRegion());
 				System.out.println("!!! After ingest method in if");
 			} else {
 				if (year < 0 || year < 1950 || year > 2099) {
@@ -250,7 +250,7 @@ public class IngestDataRS {
 					ingest(year - yearI / 2, year + yearI / 2, regionName,
 							getMinLatId(minLat), getMaxLatId(maxLat),
 							getMinLonId(minLon), getMaxLonId(maxLon),
-							region.getId());
+							region.getIdRegion());
 					System.out.println("!!! After ingest method in else");
 				}
 			}
@@ -261,7 +261,7 @@ public class IngestDataRS {
 			e.printStackTrace();
 			try {
 				if (region != null) {
-					regionDAO.deleteRegion(region.getId());
+					regionDAO.deleteRegion(region.getIdRegion());
 				}
 			} catch (Exception exc) {
 				exc.printStackTrace();

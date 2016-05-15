@@ -1,16 +1,19 @@
 package ro.unitbv.fmi.tmis.platform.model;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Region {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long idRegion;
 
 	@Column(unique = true)
 	private String name;
@@ -27,6 +30,9 @@ public class Region {
 	@Column
 	private int endYear;
 
+	@OneToMany(mappedBy = "region")
+	private List<PrecipitationAvgEachYear> precipitationAvgEachYear;
+
 	/*
 	 * @Column(name = "points", columnDefinition = "json")
 	 * 
@@ -37,12 +43,12 @@ public class Region {
 
 	// private Country country;
 
-	public Long getId() {
-		return id;
+	public Long getIdRegion() {
+		return idRegion;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setIdRegion(Long idRegion) {
+		this.idRegion = idRegion;
 	}
 
 	public String getName() {
@@ -99,6 +105,15 @@ public class Region {
 
 	public void setEndYear(int endYear) {
 		this.endYear = endYear;
+	}
+
+	public List<PrecipitationAvgEachYear> getPrecipitationAvgEachYear() {
+		return precipitationAvgEachYear;
+	}
+
+	public void setPrecipitationAvgEachYear(
+			List<PrecipitationAvgEachYear> precipitationAvgEachYear) {
+		this.precipitationAvgEachYear = precipitationAvgEachYear;
 	}
 
 	/*

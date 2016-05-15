@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -14,6 +16,7 @@ import javax.inject.Named;
 
 import org.apache.hive.jdbc.HiveStatement;
 
+import ro.unitbv.fmi.tmis.platform.hive.dto.PrecipitationAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.hive.utils.HiveConnection;
 
 @Named
@@ -54,42 +57,28 @@ public class PrecipitationDAO {
 		}
 	}
 
-	public void getAveragePerMonthEachYear(String dbName, int startYear,
-			int endYear) throws SQLException {
+	public double getAveragePerMonthEachYear(long regionId, String dbName,
+			String startDate, String endDate) throws SQLException {
 		Connection con = hiveConnection.getConnection();
-
 		try {
 			System.out.println("Try to execute query...");
 
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			Calendar startMonth = Calendar.getInstance();
-			startMonth.set(startYear, 0, 1);
-			Calendar endMonth = Calendar.getInstance();
-			endMonth.set(startYear, 0, 31);
-			String sql = " select avg(prec) from precipitation p where regionId=2 and time>? and time<?";
+			String sql = " select avg(prec) from precipitation p where regionId="
+					+ regionId + " and time>? and time<?";
 
 			Statement stmt = con.createStatement();
 			stmt.execute("USE " + dbName);
 			PreparedStatement pstmt = con.prepareStatement(sql);
 
-			for (int year = startYear; year <= endYear; year++) {
-				for (int i = 1; i <= 12; i++) {
-					System.out
-							.println("Try to extract average for month with number ["
-									+ i + "] in year [" + year + "]");
-					pstmt.setString(1, dateFormat.format(startMonth.getTime()));
-					pstmt.setString(2, dateFormat.format(endMonth.getTime()));
+			pstmt.setString(1, startDate);
+			pstmt.setString(2, endDate);
 
-					ResultSet result = pstmt.executeQuery();
-					result.next();
+			ResultSet result = pstmt.executeQuery();
+			result.next();
 
-					System.out.println("Result: " + result.getDouble(1));
-					startMonth.add(Calendar.MONTH, 1);
-					endMonth.add(Calendar.MONTH, 1);
-				}
-				startMonth.add(Calendar.YEAR, 1);
-				endMonth.add(Calendar.YEAR, 1);
-			}
+			double avgResult = result.getDouble(1);
+
+			return avgResult;
 		} finally {
 			con.close();
 		}
