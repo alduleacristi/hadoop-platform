@@ -6,15 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import org.apache.hive.jdbc.HiveStatement;
 
 import ro.unitbv.fmi.tmis.platform.hive.dto.PrecipitationAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.hive.utils.HiveConnection;
@@ -39,6 +35,19 @@ public class PrecipitationDAO {
 		}
 	}
 
+	public void dropTable(String dbName) throws SQLException {
+		Connection con = hiveConnection.getConnection();
+		try {
+			Statement createTable = con.createStatement();
+			createTable.execute("USE " + dbName);
+
+			String sql = "DROP TABLE precipitation";
+			createTable.execute(sql);
+		} finally {
+			con.close();
+		}
+	}
+
 	public void loadDataIntoTable(String dbName, String path, long regionId)
 			throws SQLException {
 		Connection con = hiveConnection.getConnection();
@@ -57,13 +66,12 @@ public class PrecipitationDAO {
 		}
 	}
 
-	public double getAveragePerMonthEachYear(long regionId, String dbName,
-			String startDate, String endDate) throws SQLException {
+	public PrecipitationAvgEachYearDTO getAveragePerMonthEachYear(
+			long regionId, String dbName, String startDate, String endDate)
+			throws SQLException {
 		Connection con = hiveConnection.getConnection();
 		try {
-			System.out.println("Try to execute query...");
-
-			String sql = " select avg(prec) from precipitation p where regionId="
+			String sql = " select max(prec), avg(prec) from precipitation p where regionId="
 					+ regionId + " and time>? and time<?";
 
 			Statement stmt = con.createStatement();
@@ -76,9 +84,13 @@ public class PrecipitationDAO {
 			ResultSet result = pstmt.executeQuery();
 			result.next();
 
-			double avgResult = result.getDouble(1);
+			PrecipitationAvgEachYearDTO prec = new PrecipitationAvgEachYearDTO();
+			double maxResult = result.getDouble(1);
+			prec.setMax(maxResult);
+			double avgResult = result.getDouble(2);
+			prec.setAvg(avgResult);
 
-			return avgResult;
+			return prec;
 		} finally {
 			con.close();
 		}

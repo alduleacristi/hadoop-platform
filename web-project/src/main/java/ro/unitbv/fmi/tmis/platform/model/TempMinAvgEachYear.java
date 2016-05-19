@@ -8,31 +8,29 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
-@Entity(name = "precipitation_avg_each_year")
-public class PrecipitationAvgEachYear {
+@Entity(name = "temp_min_avg_each_year")
+public class TempMinAvgEachYear {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long idAvg;
 	private int year, month;
-	private double avg,max;
+	private double avg, min;
 
 	@ManyToOne
 	@JoinColumn(name = "idRegion")
 	@NotNull
 	private Region region;
 
-	public PrecipitationAvgEachYear() {
+	public TempMinAvgEachYear() {
 
 	}
 
-	public PrecipitationAvgEachYear(int year, int month, double avg,double max,
-			Region region) {
+	public TempMinAvgEachYear(int year, int month, double avg, Region region) {
 		super();
 		this.year = year;
 		this.month = month;
 		this.avg = avg;
 		this.region = region;
-		this.max = max;
 	}
 
 	public long getIdAvg() {
@@ -75,11 +73,11 @@ public class PrecipitationAvgEachYear {
 		this.region = region;
 	}
 
-	public double getMax() {
-		return max;
+	public double getMin() {
+		return min;
 	}
 
-	public void setMax(double max) {
-		this.max = max;
+	public void setMin(double min) {
+		this.min = min;
 	}
 }

@@ -3,15 +3,20 @@ package ro.unitbv.fmi.tmis.platform.hive.dto;
 public class PrecipitationAvgEachYearDTO {
 	private long regionId;
 	private int year, month;
-	private double avg;
+	private double avg, max;
 
 	public PrecipitationAvgEachYearDTO(long regionId, int year, int month,
-			double avg) {
+			double avg, double max) {
 		super();
 		this.regionId = regionId;
 		this.year = year;
 		this.month = month;
 		this.avg = avg;
+		this.max = max;
+	}
+	
+	public PrecipitationAvgEachYearDTO(){
+		
 	}
 
 	public long getRegionId() {
@@ -44,5 +49,13 @@ public class PrecipitationAvgEachYearDTO {
 
 	public void setAvg(double avg) {
 		this.avg = avg;
+	}
+
+	public double getMax() {
+		return max;
+	}
+
+	public void setMax(double max) {
+		this.max = max;
 	}
 }
