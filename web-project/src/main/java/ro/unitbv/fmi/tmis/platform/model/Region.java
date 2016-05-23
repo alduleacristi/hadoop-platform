@@ -1,18 +1,24 @@
 package ro.unitbv.fmi.tmis.platform.model;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 @Entity
 public class Region {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "idRegion")
 	private Long idRegion;
 
 	@Column(unique = true)
@@ -30,8 +36,12 @@ public class Region {
 	@Column
 	private int endYear;
 
-	@OneToMany(mappedBy = "region")
+	@OneToMany(mappedBy = "region", fetch = FetchType.EAGER)
 	private List<PrecipitationAvgEachYear> precipitationAvgEachYear;
+
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "region_query", joinColumns = @JoinColumn(name = "idRegion", referencedColumnName = "idRegion"), inverseJoinColumns = @JoinColumn(name = "idQuery", referencedColumnName = "idQuery"))
+	private Set<Query> querys;
 
 	/*
 	 * @Column(name = "points", columnDefinition = "json")
@@ -114,6 +124,14 @@ public class Region {
 	public void setPrecipitationAvgEachYear(
 			List<PrecipitationAvgEachYear> precipitationAvgEachYear) {
 		this.precipitationAvgEachYear = precipitationAvgEachYear;
+	}
+
+	public Set<Query> getQuerys() {
+		return querys;
+	}
+
+	public void setQuerys(Set<Query> querys) {
+		this.querys = querys;
 	}
 
 	/*

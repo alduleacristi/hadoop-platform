@@ -16,13 +16,13 @@ import ro.unitbv.fmi.tmis.platform.model.Region;
 @Stateless
 @Named
 public class RegionDAO {
-	private static final String GET_ALL_CITYS_QUERY = "select r from Region r";
+	private static final String GET_ALL_REGIONS_QUERY = "select r from Region r";
 
 	@PersistenceContext
 	private EntityManager em;
 
 	public List<Region> getAllRegions() {
-		return em.createQuery(GET_ALL_CITYS_QUERY, Region.class)
+		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class)
 				.getResultList();
 	}
 

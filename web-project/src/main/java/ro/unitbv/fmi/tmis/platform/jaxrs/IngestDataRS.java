@@ -13,18 +13,20 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
 import ro.unitbv.fmi.tmis.platform.exception.AlreadyExistException;
+import ro.unitbv.fmi.tmis.platform.exception.FailedToDeleteException;
+import ro.unitbv.fmi.tmis.platform.exception.FailedToIngestException;
 import ro.unitbv.fmi.tmis.platform.exception.FailedToSaveException;
+import ro.unitbv.fmi.tmis.platform.exception.FailedToUploadIntoHdfsException;
 import ro.unitbv.fmi.tmis.platform.exception.InvalidParameterException;
-import ro.unitbv.fmi.tmis.platform.model.Points;
-import ro.unitbv.fmi.tmis.platform.model.Points.Point;
+import ro.unitbv.fmi.tmis.platform.hive.dao.PrecipitationDAO;
+import ro.unitbv.fmi.tmis.platform.hive.dao.TempMaxDAO;
+import ro.unitbv.fmi.tmis.platform.hive.dao.TempMinDAO;
 import ro.unitbv.fmi.tmis.platform.model.Region;
 import ro.unitbv.fmi.tmis.platform.netcdf.DataExtractor;
 import ro.unitbv.fmi.tmis.platform.netcdf.exceptions.VarNotFoundException;
@@ -47,6 +49,12 @@ public class IngestDataRS {
 	private DataExtractor precipitationExtractor;
 	@Inject
 	private RegionDAO regionDAO;
+	@Inject
+	private PrecipitationDAO precipitationDAO;
+	@Inject
+	private TempMaxDAO tempMaxDAO;
+	@Inject
+	private TempMinDAO tempMinDAO;
 
 	private String getPathInHdfs(DataType dataType) {
 		switch (dataType) {
@@ -70,7 +78,8 @@ public class IngestDataRS {
 	private File extractDataAndUploadInHdfs(int minLat, int maxLat, int minLon,
 			int maxLon, int year, String regionName, DataType dataType,
 			long regionId) throws InvalidRangeException, IOException,
-			ParseException, VarNotFoundException, URISyntaxException {
+			ParseException, VarNotFoundException, URISyntaxException,
+			FailedToUploadIntoHdfsException {
 		System.out.println("Try to extract [" + dataType.toString()
 				+ "] for year [" + year + "]");
 		File file = precipitationExtractor.extractAndWriteData(minLat, maxLat,
@@ -84,8 +93,8 @@ public class IngestDataRS {
 	}
 
 	private void ingest(int startYear, int endYear, String regionName,
-			int minLat, int maxLat, int minLon, int maxLon, long regionId)
-			throws Exception {
+			int minLat, int maxLat, int minLon, int maxLon, long regionId,
+			String dbName) throws Exception {
 		for (int year = startYear; year <= endYear; year++) {
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
 					regionName, DataType.PRECIPITATION, regionId);
@@ -94,6 +103,17 @@ public class IngestDataRS {
 			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
 					regionName, DataType.MIN_TEMP, regionId);
 		}
+
+		Region region = regionDAO.getRegionById(regionId);
+		precipitationDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/precipitations/" + region.getName(),
+				regionId);
+		tempMaxDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/temp-max/" + region.getName(),
+				regionId);
+		tempMinDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/temp-min/" + region.getName(),
+				regionId);
 	}
 
 	private int getMinLatId(double lat) {
@@ -225,22 +245,25 @@ public class IngestDataRS {
 			@NotNull(message = "Min Lon param must not be null") @QueryParam("minLon") Double minLon,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLon") Double maxLon,
 			@NotNull(message = "Region name must not be null") @QueryParam("regionName") String regionName,
-			@QueryParam("year") int year) throws AlreadyExistException {
-		System.out.println("Ingestion job was called...");
-
-		String nrOfYears = (String) conf
-				.getProperty(ConfigKey.TURISM_REGIONS_NR_OF_YEARS.getKeyValue());
-		Integer yearI = Integer.valueOf(nrOfYears);
+			@QueryParam("year") int year,
+			@NotNull(message = "Database name must not be null") @QueryParam("dbName") String dbName)
+			throws AlreadyExistException, FailedToIngestException {
 		Region region = null;
-
 		try {
+			System.out.println("Ingestion job was called...");
+
+			String nrOfYears = (String) conf
+					.getProperty(ConfigKey.TURISM_REGIONS_NR_OF_YEARS
+							.getKeyValue());
+			Integer yearI = Integer.valueOf(nrOfYears);
+
 			region = saveRegion(year - yearI / 2, year + yearI / 2, minLat,
 					maxLat, minLon, maxLon, regionName);
 
 			if (year == 0) {
 				ingest(yearI, yearI, regionName, getMinLatId(minLat),
 						getMaxLatId(maxLat), getMinLonId(minLon),
-						getMaxLonId(maxLon), region.getIdRegion());
+						getMaxLonId(maxLon), region.getIdRegion(), dbName);
 				System.out.println("!!! After ingest method in if");
 			} else {
 				if (year < 0 || year < 1950 || year > 2099) {
@@ -250,7 +273,7 @@ public class IngestDataRS {
 					ingest(year - yearI / 2, year + yearI / 2, regionName,
 							getMinLatId(minLat), getMaxLatId(maxLat),
 							getMinLonId(minLon), getMaxLonId(maxLon),
-							region.getIdRegion());
+							region.getIdRegion(), dbName);
 					System.out.println("!!! After ingest method in else");
 				}
 			}
@@ -258,14 +281,13 @@ public class IngestDataRS {
 			aex.printStackTrace();
 			throw aex;
 		} catch (Exception e) {
-			e.printStackTrace();
 			try {
-				if (region != null) {
-					regionDAO.deleteRegion(region.getIdRegion());
-				}
-			} catch (Exception exc) {
-				exc.printStackTrace();
+				regionDAO.deleteRegion(region.getIdRegion());
+			} catch (FailedToDeleteException e1) {
+				e1.printStackTrace();
 			}
+			e.printStackTrace();
+			throw new FailedToIngestException(e.getMessage());
 		}
 
 		return Response.ok().build();

@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import ro.unitbv.fmi.tmis.platform.exception.FailedToUploadIntoHdfsException;
 import ro.unitbv.fmi.tmis.platform.utils.ConfigKey;
 import ro.unitbv.fmi.tmis.platform.utils.Configuration;
 
@@ -41,38 +42,50 @@ public class HdfsServiceRest {
 		target.request().put(null);
 	}
 
-	public void uploadFile(String path, File file) throws URISyntaxException {
-		String host = (String) config.getProperty(ConfigKey.HDFS_HOST
-				.getKeyValue());
-		String port = (String) config.getProperty(ConfigKey.HDFS_PORT
-				.getKeyValue());
-		String user = (String) config.getProperty(ConfigKey.HDFS_USER
-				.getKeyValue());
+	public void uploadFile(String path, File file) throws URISyntaxException,
+			FailedToUploadIntoHdfsException {
+		try {
+			String host = (String) config.getProperty(ConfigKey.HDFS_HOST
 
-		createDirectory(path);
+			.getKeyValue());
+			String port = (String) config.getProperty(ConfigKey.HDFS_PORT
+					.getKeyValue());
+			String user = (String) config.getProperty(ConfigKey.HDFS_USER
+					.getKeyValue());
 
-		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target(host + ":" + port)
-				.path("/webhdfs/v1/user/" + user + "/" + path + file.getName())
-				.queryParam("user.name", user).queryParam("op", "CREATE")
-				.queryParam("overwrite", true);
-		Response response = target.request().put(null);
+			createDirectory(path);
 
-		String location = null;
-		MultivaluedMap<String, Object> headers = response.getMetadata();
-		Set<String> headersName = headers.keySet();
-		for (String name : headersName) {
-			if (name.equals("Location")) {
-				location = (String) headers.get(name).get(0);
+			Client client = ClientBuilder.newClient();
+			WebTarget target = client
+					.target(host + ":" + port)
+					.path("/webhdfs/v1/user/" + user + "/" + path
+							+ file.getName()).queryParam("user.name", user)
+					.queryParam("op", "CREATE").queryParam("overwrite", true);
+			Response response = target.request().put(null);
+
+			String location = null;
+			MultivaluedMap<String, Object> headers = response.getMetadata();
+			Set<String> headersName = headers.keySet();
+			for (String name : headersName) {
+				if (name.equals("Location")) {
+					location = (String) headers.get(name).get(0);
+				}
 			}
+
+			System.out.println("Try to save file in [" + location + "]");
+
+			Client client2 = ClientBuilder.newClient();
+			response = client2
+					.target(location)
+					.request()
+					.put(Entity
+							.entity(file, MediaType.APPLICATION_OCTET_STREAM));
+			int status = response.getStatus();
+			System.out.println("Status: " + status);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new FailedToUploadIntoHdfsException(
+					"Failed to upload data into hdfs", e);
 		}
-
-		System.out.println("Try to save file in [" + location + "]");
-
-		Client client2 = ClientBuilder.newClient();
-		response = client2.target(location).request()
-				.put(Entity.entity(file, MediaType.APPLICATION_OCTET_STREAM));
-		int status = response.getStatus();
-		System.out.println("Status: " + status);
 	}
 }
