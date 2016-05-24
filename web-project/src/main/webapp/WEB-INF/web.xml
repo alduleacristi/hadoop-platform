@@ -5,4 +5,13 @@
 		<servlet-name>javax.ws.rs.core.Application</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
+	
+	<!-- <filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>ro.unitbv.fmi.tmis.platform.security.SecurityFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/api/*</url-pattern>
+	</filter-mapping> -->
 </web-app>
