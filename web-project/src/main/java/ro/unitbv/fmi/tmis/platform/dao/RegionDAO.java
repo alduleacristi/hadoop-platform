@@ -26,6 +26,11 @@ public class RegionDAO {
 				.getResultList();
 	}
 
+	public List<Region> getPaginatedResult(int offset, int limit) {
+		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class)
+				.setFirstResult(offset).setMaxResults(limit).getResultList();
+	}
+
 	public Region saveRegion(Region region) throws FailedToSaveException,
 			AlreadyExistException {
 		try {

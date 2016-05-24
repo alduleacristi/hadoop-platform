@@ -8,25 +8,27 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity(name = "precipitation_avg_each_year")
 public class PrecipitationAvgEachYear {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long idAvg;
 	private int year, month;
-	private double avg,max;
+	private double avg, max;
 
 	@ManyToOne
 	@JoinColumn(name = "idRegion")
-	@NotNull
+	@JsonBackReference
 	private Region region;
 
 	public PrecipitationAvgEachYear() {
 
 	}
 
-	public PrecipitationAvgEachYear(int year, int month, double avg,double max,
-			Region region) {
+	public PrecipitationAvgEachYear(int year, int month, double avg,
+			double max, Region region) {
 		super();
 		this.year = year;
 		this.month = month;

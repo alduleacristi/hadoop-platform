@@ -12,6 +12,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
+import ro.unitbv.fmi.tmis.platform.exception.InvalidParameterException;
 import ro.unitbv.fmi.tmis.platform.model.Region;
 
 @Path("/api")
@@ -21,12 +22,22 @@ public class RegionRS {
 	@Inject
 	private RegionDAO regionDAO;
 
+	private boolean validateOffsetAndLimit(Integer offset, Integer limit) {
+		if (offset < 0) {
+			throw new InvalidParameterException("Offset must be positive");
+		}
+		if (limit < 0) {
+			throw new InvalidParameterException("Limit must be positive");
+		}
+		return true;
+	}
+
 	@GET
 	@Path("/region")
-	public List<Region> getRegion(@QueryParam("regionId") Long regionId) {
-		if (regionId == null) {
-			return regionDAO.getAllRegions();
-		} else {
+	public List<Region> getRegion(@QueryParam("regionId") Long regionId,
+			@QueryParam("offset") Integer offset,
+			@QueryParam("limit") Integer limit) {
+		if (regionId != null) {
 			List<Region> regions = new ArrayList<>();
 			Region region = regionDAO.getRegionById(regionId);
 			if (region != null) {
@@ -34,6 +45,14 @@ public class RegionRS {
 			}
 
 			return regions;
+		} else if (offset != null && limit != null) {
+			if (validateOffsetAndLimit(offset, limit)) {
+				return regionDAO.getPaginatedResult(offset, limit);
+			}
+
+			return null;
+		} else {
+			return regionDAO.getAllRegions();
 		}
 	}
 }

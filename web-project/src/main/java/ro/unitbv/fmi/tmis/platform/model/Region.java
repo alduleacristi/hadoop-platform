@@ -14,6 +14,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 public class Region {
 	@Id
@@ -24,23 +26,25 @@ public class Region {
 	@Column(unique = true)
 	private String name;
 	@Column
-	private double minLat;
+	private Double minLat;
 	@Column
-	private double maxLat;
+	private Double maxLat;
 	@Column
-	private double minLon;
+	private Double minLon;
 	@Column
-	private double maxLon;
+	private Double maxLon;
 	@Column
-	private int startYear;
+	private Integer startYear;
 	@Column
-	private int endYear;
+	private Integer endYear;
 
 	@OneToMany(mappedBy = "region", fetch = FetchType.EAGER)
+	@JsonManagedReference
 	private List<PrecipitationAvgEachYear> precipitationAvgEachYear;
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "region_query", joinColumns = @JoinColumn(name = "idRegion", referencedColumnName = "idRegion"), inverseJoinColumns = @JoinColumn(name = "idQuery", referencedColumnName = "idQuery"))
+	@JsonManagedReference
 	private Set<Query> querys;
 
 	/*
@@ -69,54 +73,6 @@ public class Region {
 		this.name = name;
 	}
 
-	public double getMinLat() {
-		return minLat;
-	}
-
-	public void setMinLat(double minLat) {
-		this.minLat = minLat;
-	}
-
-	public double getMaxLat() {
-		return maxLat;
-	}
-
-	public void setMaxLat(double maxLat) {
-		this.maxLat = maxLat;
-	}
-
-	public double getMinLon() {
-		return minLon;
-	}
-
-	public void setMinLon(double minLon) {
-		this.minLon = minLon;
-	}
-
-	public double getMaxLon() {
-		return maxLon;
-	}
-
-	public void setMaxLon(double maxLon) {
-		this.maxLon = maxLon;
-	}
-
-	public int getStartYear() {
-		return startYear;
-	}
-
-	public void setStartYear(int startYear) {
-		this.startYear = startYear;
-	}
-
-	public int getEndYear() {
-		return endYear;
-	}
-
-	public void setEndYear(int endYear) {
-		this.endYear = endYear;
-	}
-
 	public List<PrecipitationAvgEachYear> getPrecipitationAvgEachYear() {
 		return precipitationAvgEachYear;
 	}
@@ -132,6 +88,54 @@ public class Region {
 
 	public void setQuerys(Set<Query> querys) {
 		this.querys = querys;
+	}
+
+	public Double getMinLat() {
+		return minLat;
+	}
+
+	public void setMinLat(Double minLat) {
+		this.minLat = minLat;
+	}
+
+	public Double getMaxLat() {
+		return maxLat;
+	}
+
+	public void setMaxLat(Double maxLat) {
+		this.maxLat = maxLat;
+	}
+
+	public Double getMinLon() {
+		return minLon;
+	}
+
+	public void setMinLon(Double minLon) {
+		this.minLon = minLon;
+	}
+
+	public Double getMaxLon() {
+		return maxLon;
+	}
+
+	public void setMaxLon(Double maxLon) {
+		this.maxLon = maxLon;
+	}
+
+	public Integer getStartYear() {
+		return startYear;
+	}
+
+	public void setStartYear(Integer startYear) {
+		this.startYear = startYear;
+	}
+
+	public Integer getEndYear() {
+		return endYear;
+	}
+
+	public void setEndYear(Integer endYear) {
+		this.endYear = endYear;
 	}
 
 	/*
