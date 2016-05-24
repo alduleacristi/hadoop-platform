@@ -55,4 +55,14 @@ public class RegionRS {
 			return regionDAO.getAllRegions();
 		}
 	}
+
+	@GET
+	@Path("/searchRegion")
+	public List<Region> searchForRegion(@QueryParam("name") String name) {
+		if (name == null) {
+			throw new InvalidParameterException("Name could not be null");
+		} else {
+			return regionDAO.searchForRegion(name);
+		}
+	}
 }

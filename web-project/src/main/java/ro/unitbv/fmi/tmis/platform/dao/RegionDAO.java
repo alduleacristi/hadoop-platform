@@ -17,12 +17,19 @@ import ro.unitbv.fmi.tmis.platform.model.Region;
 @Named
 public class RegionDAO {
 	private static final String GET_ALL_REGIONS_QUERY = "select r from Region r";
+	private static final String SEARCH_FOR_REGION_QUERY = "select r from Region r where lower(r.name) like :name";
 
 	@PersistenceContext
 	private EntityManager em;
 
 	public List<Region> getAllRegions() {
 		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class)
+				.getResultList();
+	}
+
+	public List<Region> searchForRegion(String name) {
+		return em.createQuery(SEARCH_FOR_REGION_QUERY, Region.class)
+				.setParameter("name", "%" + name.toLowerCase() + "%")
 				.getResultList();
 	}
 
