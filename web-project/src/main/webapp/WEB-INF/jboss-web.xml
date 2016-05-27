@@ -1,0 +1,3 @@
+<jboss-web>
+	<security-domain>platform-domain</security-domain>
+</jboss-web>

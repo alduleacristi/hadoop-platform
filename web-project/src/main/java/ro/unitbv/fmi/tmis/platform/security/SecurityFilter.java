@@ -26,6 +26,10 @@ public class SecurityFilter implements Filter {
 		System.out.println("In security filter...");
 		String token = servletRequest.getHeader("Authorization");
 		System.out.println("Token: " + token);
+
+		//servletRequest.login("test", "test");
+
+		chain.doFilter(request, response);
 	}
 
 	@Override
