@@ -133,7 +133,8 @@ public class HivePrecipitationsRS {
 			@NotNull(message = "Each year option must not be null") @QueryParam("eachYear") Boolean eachYear) {
 
 		Region region = regionDAO.getRegionById(regionId);
-		try {
+		System.out.println("Precipitation query was called...");
+		/*try {
 			if (eachYear) {
 				extractPrecipitationAvgEachYear(dbName, region,
 						region.getStartYear(), region.getEndYear());
@@ -144,6 +145,6 @@ public class HivePrecipitationsRS {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 }
