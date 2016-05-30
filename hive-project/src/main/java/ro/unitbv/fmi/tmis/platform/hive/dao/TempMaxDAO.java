@@ -91,52 +91,53 @@ public class TempMaxDAO {
 		}
 	}
 
-//	public void getAveragePerMonthAllYears(String dbName, int startYear,
-//			int endYear) throws SQLException {
-//		Connection con = hiveConnection.getConnection();
-//
-//		try {
-//			System.out.println("Try to execute query...");
-//
-//			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-//			Statement stmt = con.createStatement();
-//			stmt.execute("USE " + dbName);
-//			stmt = con.createStatement();
-//
-//			for (int i = 1; i <= 12; i++) {
-//				String sql = "select avg(prec) from precipitation p where regionId=2 and (";
-//
-//				Calendar startMonth = Calendar.getInstance();
-//				startMonth.set(startYear, i - 1, 1);
-//				Calendar endMonth = Calendar.getInstance();
-//				endMonth.set(startYear, i - 1, 31);
-//				for (int year = startYear; year <= endYear; year++) {
-//					if (year - startYear > 0) {
-//						sql += " or ";
-//					}
-//
-//					sql += "time>'" + dateFormat.format(startMonth.getTime())
-//							+ "' and time<'"
-//							+ dateFormat.format(endMonth.getTime()) + "'";
-//					startMonth.add(Calendar.YEAR, 1);
-//					endMonth.add(Calendar.YEAR, 1);
-//				}
-//				sql += ")";
-//				System.out
-//						.println("Try to extract average for month with number ["
-//								+ i + "]");
-//				System.out.println(sql);
-//
-//				ResultSet result = stmt.executeQuery(sql);
-//				result.next();
-//
-//				System.out.println("Result: " + result.getDouble(1));
-//				startMonth.add(Calendar.MONTH, 1);
-//				endMonth.add(Calendar.MONTH, 1);
-//			}
-//		} finally {
-//			con.close();
-//		}
-//	}
+	// public void getAveragePerMonthAllYears(String dbName, int startYear,
+	// int endYear) throws SQLException {
+	// Connection con = hiveConnection.getConnection();
+	//
+	// try {
+	// System.out.println("Try to execute query...");
+	//
+	// SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	// Statement stmt = con.createStatement();
+	// stmt.execute("USE " + dbName);
+	// stmt = con.createStatement();
+	//
+	// for (int i = 1; i <= 12; i++) {
+	// String sql =
+	// "select avg(prec) from precipitation p where regionId=2 and (";
+	//
+	// Calendar startMonth = Calendar.getInstance();
+	// startMonth.set(startYear, i - 1, 1);
+	// Calendar endMonth = Calendar.getInstance();
+	// endMonth.set(startYear, i - 1, 31);
+	// for (int year = startYear; year <= endYear; year++) {
+	// if (year - startYear > 0) {
+	// sql += " or ";
+	// }
+	//
+	// sql += "time>'" + dateFormat.format(startMonth.getTime())
+	// + "' and time<'"
+	// + dateFormat.format(endMonth.getTime()) + "'";
+	// startMonth.add(Calendar.YEAR, 1);
+	// endMonth.add(Calendar.YEAR, 1);
+	// }
+	// sql += ")";
+	// System.out
+	// .println("Try to extract average for month with number ["
+	// + i + "]");
+	// System.out.println(sql);
+	//
+	// ResultSet result = stmt.executeQuery(sql);
+	// result.next();
+	//
+	// System.out.println("Result: " + result.getDouble(1));
+	// startMonth.add(Calendar.MONTH, 1);
+	// endMonth.add(Calendar.MONTH, 1);
+	// }
+	// } finally {
+	// con.close();
+	// }
+	// }
 
 }
