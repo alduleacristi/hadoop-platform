@@ -7,7 +7,7 @@ import ro.unitbv.fmi.tmis.platform.model.Role;
 
 public class TokenDTO {
 	private String clientId;
-	private Set<Role> roles;
+	private Set<String> roles;
 	private Date generatedDate;
 
 	public String getClientId() {
@@ -26,11 +26,11 @@ public class TokenDTO {
 		this.generatedDate = generatedDate;
 	}
 
-	public Set<Role> getRoles() {
+	public Set<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Set<Role> roles) {
+	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
 }

@@ -6,10 +6,10 @@
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 	
-	<security-constraint>
+	<!--  <security-constraint>
 		<web-resource-collection>
-			<web-resource-name>xhtml</web-resource-name>
-			<url-pattern>/api/test/*</url-pattern>
+			<web-resource-name>platform</web-resource-name>
+			<url-pattern>/api/platform/*</url-pattern>
 			<http-method>GET</http-method>
 			<http-method>POST</http-method>
 			<http-method>PUT</http-method>
@@ -19,26 +19,39 @@
 			<http-method>OPTIONS</http-method>
 		</web-resource-collection>
 		<auth-constraint>
-			<role-name>AUTHOR</role-name>
 			<role-name>ADMIN</role-name>
 		</auth-constraint>
 	</security-constraint>
-	
+
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>platform</web-resource-name>
+			<url-pattern>/api/view/*</url-pattern>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+			<http-method>PUT</http-method>
+			<http-method>HEAD</http-method>
+			<http-method>TRACE</http-method>
+			<http-method>DELETE</http-method>
+			<http-method>OPTIONS</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>ADMIN</role-name>
+			<role-name>USER</role-name>
+		</auth-constraint>
+	</security-constraint>
+
 	<security-role>
 		<role-name>*</role-name>
 	</security-role>
-	
+
 	<login-config>
-		<auth-method>BASIC</auth-method>
+		<auth-method>FORM</auth-method>
 		<realm-name>platform-domain</realm-name>
-	</login-config>
+		<form-login-config>
+			<form-login-page>/api/notAuthenticated</form-login-page>
+			<form-error-page>/api/failedToAuthenticate</form-error-page>
+		</form-login-config>
+	</login-config> -->
 	
-	<filter>
-		<filter-name>SecurityFilter</filter-name>
-		<filter-class>ro.unitbv.fmi.tmis.platform.security.SecurityFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>SecurityFilter</filter-name>
-		<url-pattern>/api/*</url-pattern>
-	</filter-mapping> 
 </web-app>

@@ -21,6 +21,7 @@ dependencies {
 	compile 'javax:javaee-api:7.0'
 	compile 'postgresql:postgresql:9.1-901-1.jdbc4'
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.7.3'
+	compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
 }
 
 war.archiveName = "platform-server.war"
