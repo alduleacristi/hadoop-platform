@@ -31,7 +31,7 @@ public class PrecipitationAvgEachYearRS {
 		List<PrecipitationAvgEachYearDTO> dtos = new ArrayList<>();
 		for (PrecipitationAvgEachYear p : values) {
 			PrecipitationAvgEachYearDTO dto = new PrecipitationAvgEachYearDTO(
-					regionId, p.getYear(), p.getMonth(), p.getAvg());
+					regionId, p.getYear(), p.getMonth(), p.getAvg(), p.getMax());
 			dtos.add(dto);
 		}
 
