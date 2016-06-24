@@ -10,6 +10,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import ro.unitbv.fmi.tmis.platform.hive.dto.TempMinAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.hive.utils.HiveConnection;
 
 @Named
@@ -62,13 +63,13 @@ public class TempMinDAO {
 		}
 	}
 
-	public double getAveragePerMonthEachYear(long regionId, String dbName,
+	public TempMinAvgEachYearDTO getAveragePerMonthEachYear(long regionId, String dbName,
 			String startDate, String endDate) throws SQLException {
 		Connection con = hiveConnection.getConnection();
 		try {
 			System.out.println("Try to execute query...");
 
-			String sql = " select avg(temp_min) from temp_min p where regionId="
+			String sql = " select min(temp_min), avg(temp_min) from temp_min p where regionId="
 					+ regionId + " and time>? and time<?";
 
 			Statement stmt = con.createStatement();
@@ -81,9 +82,17 @@ public class TempMinDAO {
 			ResultSet result = pstmt.executeQuery();
 			result.next();
 
-			double avgResult = result.getDouble(1);
+			//double avgResult = result.getDouble(1);
+			TempMinAvgEachYearDTO temp = new TempMinAvgEachYearDTO();
+			double maxResult = result.getDouble(1);
+			temp.setMin(maxResult);
+			double avgResult = result.getDouble(2);
+			temp.setAvg(avgResult);
 
-			return avgResult;
+			System.out.println("MinResult: " + maxResult);
+			System.out.println("AvgResult: " + avgResult);
+
+			return temp;
 		} finally {
 			con.close();
 		}

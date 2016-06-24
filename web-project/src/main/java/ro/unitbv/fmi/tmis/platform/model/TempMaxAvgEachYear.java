@@ -25,13 +25,14 @@ public class TempMaxAvgEachYear {
 
 	}
 
-	public TempMaxAvgEachYear(int year, int month, double avg,
+	public TempMaxAvgEachYear(int year, int month, double avg, double max,
 			Region region) {
 		super();
 		this.year = year;
 		this.month = month;
 		this.avg = avg;
 		this.region = region;
+		this.max = max;
 	}
 
 	public long getIdAvg() {

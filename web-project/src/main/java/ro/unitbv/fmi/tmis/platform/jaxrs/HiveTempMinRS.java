@@ -21,6 +21,7 @@ import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
 import ro.unitbv.fmi.tmis.platform.dao.TempMinAvgEachYearDAO;
 import ro.unitbv.fmi.tmis.platform.exception.AlreadyExistException;
 import ro.unitbv.fmi.tmis.platform.hive.dao.TempMinDAO;
+import ro.unitbv.fmi.tmis.platform.hive.dto.TempMinAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.model.Query;
 import ro.unitbv.fmi.tmis.platform.model.Region;
 import ro.unitbv.fmi.tmis.platform.model.TempMinAvgEachYear;
@@ -126,13 +127,15 @@ public class HiveTempMinRS {
 					System.out
 							.println("Try to extract average for month with number ["
 									+ month + "] in year [" + year + "]");
-					double avgResult = tempMinDAO.getAveragePerMonthEachYear(
-							region.getIdRegion(), dbName,
-							dateFormat.format(startMonth.getTime()),
-							dateFormat.format(endMonth.getTime()));
+					TempMinAvgEachYearDTO avgResult = tempMinDAO
+							.getAveragePerMonthEachYear(region.getIdRegion(),
+									dbName,
+									dateFormat.format(startMonth.getTime()),
+									dateFormat.format(endMonth.getTime()));
 
 					TempMinAvgEachYear entity = new TempMinAvgEachYear(year,
-							month, avgResult, region);
+							month, avgResult.getAvg(), avgResult.getMin(),
+							region);
 					tempMinAvgEachYearDAO.insertTempMinAvgEachYear(entity);
 					startMonth.add(Calendar.MONTH, 1);
 					endMonth.add(Calendar.MONTH, 1);
@@ -152,7 +155,8 @@ public class HiveTempMinRS {
 	public void getAvgPerMonth(
 			@NotNull(message = "Region id must not be null") @QueryParam("regionId") Long regionId,
 			@NotNull(message = "Database name must not be null") @QueryParam("dbName") String dbName,
-			@NotNull(message = "Each year option must not be null") @QueryParam("eachYear") Boolean eachYear) throws AlreadyExistException {
+			@NotNull(message = "Each year option must not be null") @QueryParam("eachYear") Boolean eachYear)
+			throws AlreadyExistException {
 
 		Region region = regionDAO.getRegionById(regionId);
 		System.out.println("Region name: " + region.getName());

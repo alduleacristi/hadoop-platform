@@ -62,6 +62,7 @@ public class RegionRS {
 		if (name == null) {
 			throw new InvalidParameterException("Name could not be null");
 		} else {
+			System.out.println("Region name: " + name);
 			return regionDAO.searchForRegion(name);
 		}
 	}

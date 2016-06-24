@@ -25,11 +25,11 @@ public class TempMaxAvgEachYearDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<TempMaxAvgEachYear> getPrecipitationAvgEachYearByRegionId(
+	public List<TempMaxAvgEachYear> getTempMaxAvgEachYearByRegionId(
 			long regionId) {
 		return em
 				.createQuery(
-						"select t from tem_max_avg_each_year t where t.region.idRegion=:idRegion")
+						"select t from temp_max_avg_each_year t where t.region.idRegion=:idRegion")
 				.setParameter("idRegion", regionId).getResultList();
 	}
 }

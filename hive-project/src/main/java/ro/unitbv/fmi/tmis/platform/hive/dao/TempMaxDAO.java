@@ -5,13 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import ro.unitbv.fmi.tmis.platform.hive.dto.TempMaxAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.hive.utils.HiveConnection;
 
 @Named
@@ -64,13 +63,13 @@ public class TempMaxDAO {
 		}
 	}
 
-	public double getAveragePerMonthEachYear(long regionId, String dbName,
+	public TempMaxAvgEachYearDTO getAveragePerMonthEachYear(long regionId, String dbName,
 			String startDate, String endDate) throws SQLException {
 		Connection con = hiveConnection.getConnection();
 		try {
 			System.out.println("Try to execute query...");
 
-			String sql = " select avg(temp_max) from temp_max p where regionId="
+			String sql = " select max(temp_max), avg(temp_max) from temp_max p where regionId="
 					+ regionId + " and time>? and time<?";
 
 			Statement stmt = con.createStatement();
@@ -83,9 +82,14 @@ public class TempMaxDAO {
 			ResultSet result = pstmt.executeQuery();
 			result.next();
 
-			double avgResult = result.getDouble(1);
+			//double avgResult = result.getDouble(1);
+			TempMaxAvgEachYearDTO temp = new TempMaxAvgEachYearDTO();
+			double maxResult = result.getDouble(1);
+			temp.setMax(maxResult);
+			double avgResult = result.getDouble(2);
+			temp.setAvg(avgResult);
 
-			return avgResult;
+			return temp;
 		} finally {
 			con.close();
 		}

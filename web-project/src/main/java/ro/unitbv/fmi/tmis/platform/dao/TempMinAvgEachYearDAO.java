@@ -7,7 +7,6 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import ro.unitbv.fmi.tmis.platform.model.TempMaxAvgEachYear;
 import ro.unitbv.fmi.tmis.platform.model.TempMinAvgEachYear;
 
 @Named
@@ -25,11 +24,11 @@ public class TempMinAvgEachYearDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<TempMaxAvgEachYear> getPrecipitationAvgEachYearByRegionId(
+	public List<TempMinAvgEachYear> getTempMinAvgEachYearByRegionId(
 			long regionId) {
 		return em
 				.createQuery(
-						"select t from tem_min_avg_each_year t where t.region.idRegion=:idRegion")
+						"select t from temp_min_avg_each_year t where t.region.idRegion=:idRegion")
 				.setParameter("idRegion", regionId).getResultList();
 	}
 }

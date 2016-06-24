@@ -21,6 +21,7 @@ import ro.unitbv.fmi.tmis.platform.dao.RegionDAO;
 import ro.unitbv.fmi.tmis.platform.dao.TempMaxAvgEachYearDAO;
 import ro.unitbv.fmi.tmis.platform.exception.AlreadyExistException;
 import ro.unitbv.fmi.tmis.platform.hive.dao.TempMaxDAO;
+import ro.unitbv.fmi.tmis.platform.hive.dto.TempMaxAvgEachYearDTO;
 import ro.unitbv.fmi.tmis.platform.model.Query;
 import ro.unitbv.fmi.tmis.platform.model.Region;
 import ro.unitbv.fmi.tmis.platform.model.TempMaxAvgEachYear;
@@ -126,13 +127,15 @@ public class HiveTempMaxRS {
 					System.out
 							.println("Try to extract temp-max average for month with number ["
 									+ month + "] in year [" + year + "]");
-					double avgResult = tempMaxDAO.getAveragePerMonthEachYear(
-							region.getIdRegion(), dbName,
-							dateFormat.format(startMonth.getTime()),
-							dateFormat.format(endMonth.getTime()));
+					TempMaxAvgEachYearDTO avgResult = tempMaxDAO
+							.getAveragePerMonthEachYear(region.getIdRegion(),
+									dbName,
+									dateFormat.format(startMonth.getTime()),
+									dateFormat.format(endMonth.getTime()));
 
 					TempMaxAvgEachYear entity = new TempMaxAvgEachYear(year,
-							month, avgResult, region);
+							month, avgResult.getAvg(), avgResult.getMax(),
+							region);
 					tempMaxAvgEachYearDAO.insertTempMaxAvgEachYear(entity);
 					startMonth.add(Calendar.MONTH, 1);
 					endMonth.add(Calendar.MONTH, 1);

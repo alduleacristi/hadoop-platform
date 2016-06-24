@@ -25,12 +25,13 @@ public class TempMinAvgEachYear {
 
 	}
 
-	public TempMinAvgEachYear(int year, int month, double avg, Region region) {
+	public TempMinAvgEachYear(int year, int month, double avg,double min, Region region) {
 		super();
 		this.year = year;
 		this.month = month;
 		this.avg = avg;
 		this.region = region;
+		this.min = min;
 	}
 
 	public long getIdAvg() {
