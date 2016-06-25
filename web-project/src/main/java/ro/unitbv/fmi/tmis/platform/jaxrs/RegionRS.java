@@ -60,6 +60,21 @@ public class RegionRS {
 	}
 
 	@GET
+	@Path("/regionById")
+	public List<Region> getRegion(@NotNull(message = "Type of region must not be null") @QueryParam("regionId") Long regionId) {
+		if (regionId != null) {
+			List<Region> regions = new ArrayList<>();
+			Region region = regionDAO.getRegionById(regionId);
+			if (region != null) {
+				regions.add(region);
+			}
+
+			return regions;
+		}
+		return null;
+	}
+
+	@GET
 	@Path("/searchRegion")
 	public List<Region> searchForRegion(
 			@NotNull(message = "Type of region must not be null") @QueryParam("type") String type,

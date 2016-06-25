@@ -122,23 +122,49 @@ public class HiveTempMaxRS {
 			Calendar endMonth = Calendar.getInstance();
 			endMonth.set(startYear, 0, 31);
 
-			for (int year = startYear; year <= endYear; year++) {
-				for (int month = 1; month <= 12; month++) {
-					System.out
-							.println("Try to extract temp-max average for month with number ["
-									+ month + "] in year [" + year + "]");
-					TempMaxAvgEachYearDTO avgResult = tempMaxDAO
-							.getAveragePerMonthEachYear(region.getIdRegion(),
-									dbName,
-									dateFormat.format(startMonth.getTime()),
-									dateFormat.format(endMonth.getTime()));
+			if (region.getType().equals("turism")) {
+				for (int year = startYear; year <= endYear; year++) {
+					for (int month = 1; month <= 12; month++) {
+						System.out
+								.println("Try to extract temp-max average for month with number ["
+										+ month + "] in year [" + year + "]");
+						TempMaxAvgEachYearDTO avgResult = tempMaxDAO
+								.getAveragePerMonthEachYear(
+										region.getIdRegion(),
+										dbName,
+										dateFormat.format(startMonth.getTime()),
+										dateFormat.format(endMonth.getTime()));
 
-					TempMaxAvgEachYear entity = new TempMaxAvgEachYear(year,
-							month, avgResult.getAvg(), avgResult.getMax(),
-							region);
-					tempMaxAvgEachYearDAO.insertTempMaxAvgEachYear(entity);
-					startMonth.add(Calendar.MONTH, 1);
-					endMonth.add(Calendar.MONTH, 1);
+						TempMaxAvgEachYear entity = new TempMaxAvgEachYear(
+								year, month, avgResult.getAvg(),
+								avgResult.getMax(), region);
+						tempMaxAvgEachYearDAO.insertTempMaxAvgEachYear(entity);
+						startMonth.add(Calendar.MONTH, 1);
+						endMonth.add(Calendar.MONTH, 1);
+					}
+				}
+			} else if (region.getType().equals("prediction")) {
+				for (int year = startYear; year <= endYear; year += 10) {
+					for (int month = 1; month <= 12; month++) {
+						System.out
+								.println("Try to extract temp-max average for month with number ["
+										+ month + "] in year [" + year + "]");
+						TempMaxAvgEachYearDTO avgResult = tempMaxDAO
+								.getAveragePerMonthEachYear(
+										region.getIdRegion(),
+										dbName,
+										dateFormat.format(startMonth.getTime()),
+										dateFormat.format(endMonth.getTime()));
+
+						TempMaxAvgEachYear entity = new TempMaxAvgEachYear(
+								year, month, avgResult.getAvg(),
+								avgResult.getMax(), region);
+						tempMaxAvgEachYearDAO.insertTempMaxAvgEachYear(entity);
+						startMonth.add(Calendar.MONTH, 1);
+						endMonth.add(Calendar.MONTH, 1);
+					}
+					startMonth.add(Calendar.YEAR, 9);
+					endMonth.add(Calendar.YEAR, 9);
 				}
 			}
 			queryUsedDAO.updateUsedQuery(usedQuery.getIdUsedQuery(),

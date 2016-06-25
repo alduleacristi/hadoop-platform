@@ -140,25 +140,53 @@ public class HivePrecipitationsRS {
 			Calendar endMonth = Calendar.getInstance();
 			endMonth.set(startYear, 0, 31);
 
-			for (int year = startYear; year <= endYear; year++) {
-				for (int month = 1; month <= 12; month++) {
-					System.out
-							.println("Try to extract precipitation average for month with number ["
-									+ month + "] in year [" + year + "]");
+			if (region.getType().equals("turism")) {
+				for (int year = startYear; year <= endYear; year++) {
+					for (int month = 1; month <= 12; month++) {
+						System.out
+								.println("Try to extract precipitation average for month with number ["
+										+ month + "] in year [" + year + "]");
 
-					PrecipitationAvgEachYearDTO precDTO = precipitationDAO
-							.getAveragePerMonthEachYear(region.getIdRegion(),
-									dbName,
-									dateFormat.format(startMonth.getTime()),
-									dateFormat.format(endMonth.getTime()));
+						PrecipitationAvgEachYearDTO precDTO = precipitationDAO
+								.getAveragePerMonthEachYear(
+										region.getIdRegion(),
+										dbName,
+										dateFormat.format(startMonth.getTime()),
+										dateFormat.format(endMonth.getTime()));
 
-					PrecipitationAvgEachYear entity = new PrecipitationAvgEachYear(
-							year, month, precDTO.getAvg(), precDTO.getMax(),
-							region);
-					precipitationAvgEachYearDAO
-							.insertPrecipitationAvgEachYear(entity);
-					startMonth.add(Calendar.MONTH, 1);
-					endMonth.add(Calendar.MONTH, 1);
+						PrecipitationAvgEachYear entity = new PrecipitationAvgEachYear(
+								year, month, precDTO.getAvg(),
+								precDTO.getMax(), region);
+						precipitationAvgEachYearDAO
+								.insertPrecipitationAvgEachYear(entity);
+						startMonth.add(Calendar.MONTH, 1);
+						endMonth.add(Calendar.MONTH, 1);
+					}
+				}
+			}else if (region.getType().equals("prediction")){
+				for (int year = startYear; year <= endYear; year+=10) {
+					for (int month = 1; month <= 12; month++) {
+						System.out
+								.println("Try to extract precipitation average for month with number ["
+										+ month + "] in year [" + year + "]");
+
+						PrecipitationAvgEachYearDTO precDTO = precipitationDAO
+								.getAveragePerMonthEachYear(
+										region.getIdRegion(),
+										dbName,
+										dateFormat.format(startMonth.getTime()),
+										dateFormat.format(endMonth.getTime()));
+
+						PrecipitationAvgEachYear entity = new PrecipitationAvgEachYear(
+								year, month, precDTO.getAvg(),
+								precDTO.getMax(), region);
+						precipitationAvgEachYearDAO
+								.insertPrecipitationAvgEachYear(entity);
+						startMonth.add(Calendar.MONTH, 1);
+						endMonth.add(Calendar.MONTH, 1);
+					}
+					startMonth.add(Calendar.YEAR, 9);
+					endMonth.add(Calendar.YEAR, 9);
 				}
 			}
 

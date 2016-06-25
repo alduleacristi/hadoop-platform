@@ -116,6 +116,30 @@ public class IngestDataRS {
 				regionId);
 	}
 
+	private void ingestPrediction(int startYear, int endYear,
+			String regionName, int minLat, int maxLat, int minLon, int maxLon,
+			long regionId, String dbName) throws Exception {
+		for (int year = startYear; year <= endYear; year += 10) {
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.PRECIPITATION, regionId);
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.MAX_TEMP, regionId);
+			extractDataAndUploadInHdfs(minLat, maxLat, minLon, maxLon, year,
+					regionName, DataType.MIN_TEMP, regionId);
+		}
+
+		Region region = regionDAO.getRegionById(regionId);
+		precipitationDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/precipitations/" + region.getName(),
+				regionId);
+		tempMaxDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/temp-max/" + region.getName(),
+				regionId);
+		tempMinDAO.loadDataIntoTable(dbName,
+				"/user/root/extracted-data/temp-min/" + region.getName(),
+				regionId);
+	}
+
 	private int getMinLatId(double lat) {
 		if (lat < -90 || lat > 90) {
 			throw new InvalidParameterException(
@@ -259,8 +283,13 @@ public class IngestDataRS {
 							.getKeyValue());
 			Integer yearI = Integer.valueOf(nrOfYears);
 
-			region = saveRegion(year - yearI / 2, year + yearI / 2, minLat,
-					maxLat, minLon, maxLon, regionName, type);
+			if (type.equals("turism")) {
+				region = saveRegion(year - yearI / 2, year + yearI / 2, minLat,
+						maxLat, minLon, maxLon, regionName, type);
+			} else if (type.equals("prediction")) {
+				region = saveRegion(2020, 2090, minLat, maxLat, minLon, maxLon,
+						regionName, type);
+			}
 
 			if (year == 0) {
 				ingest(yearI, yearI, regionName, getMinLatId(minLat),
@@ -272,10 +301,17 @@ public class IngestDataRS {
 					throw new InvalidParameterException(
 							"The year must be between 1950 and 2099");
 				} else {
-					ingest(year - yearI / 2, year + yearI / 2, regionName,
-							getMinLatId(minLat), getMaxLatId(maxLat),
-							getMinLonId(minLon), getMaxLonId(maxLon),
-							region.getIdRegion(), dbName);
+					if (type.equals("turism")) {
+						ingest(year - yearI / 2, year + yearI / 2, regionName,
+								getMinLatId(minLat), getMaxLatId(maxLat),
+								getMinLonId(minLon), getMaxLonId(maxLon),
+								region.getIdRegion(), dbName);
+					} else if (type.equals("prediction")) {
+						ingestPrediction(2020, 2090, regionName,
+								getMinLatId(minLat), getMaxLatId(maxLat),
+								getMinLonId(minLon), getMaxLonId(maxLon),
+								region.getIdRegion(), dbName);
+					}
 					System.out.println("!!! After ingest method in else");
 				}
 			}

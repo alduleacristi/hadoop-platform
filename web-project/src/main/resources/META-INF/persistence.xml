@@ -5,6 +5,7 @@
 	<persistence-unit name="platform-server" transaction-type="JTA">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<jta-data-source>java:/PostGreCity</jta-data-source>
+<!-- 			<jta-data-source>java:jboss/datasources/PostgreSQLDS</jta-data-source> -->
 <!-- 		<class>com.siemens.reviewer.model.Document</class> -->
 		<properties>
 			<property name="hibernate.transaction.jta.platform" value="org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform" />
