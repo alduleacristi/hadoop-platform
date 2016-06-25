@@ -37,6 +37,8 @@ public class Region {
 	private Integer startYear;
 	@Column
 	private Integer endYear;
+	@Column
+	private String type;
 
 	@OneToMany(mappedBy = "region", fetch = FetchType.EAGER)
 	@JsonManagedReference
@@ -136,6 +138,14 @@ public class Region {
 
 	public void setEndYear(Integer endYear) {
 		this.endYear = endYear;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	/*

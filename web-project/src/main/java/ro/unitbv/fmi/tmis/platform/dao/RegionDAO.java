@@ -16,25 +16,25 @@ import ro.unitbv.fmi.tmis.platform.model.Region;
 @Stateless
 @Named
 public class RegionDAO {
-	private static final String GET_ALL_REGIONS_QUERY = "select r from Region r";
-	private static final String SEARCH_FOR_REGION_QUERY = "select r from Region r where lower(r.name) like :name";
+	private static final String GET_ALL_REGIONS_QUERY = "select r from Region r where r.type=:type";
+	private static final String SEARCH_FOR_REGION_QUERY = "select r from Region r where lower(r.name) like :name and r.type=:type";
 
 	@PersistenceContext
 	private EntityManager em;
 
-	public List<Region> getAllRegions() {
+	public List<Region> getAllRegions(String type) {
 		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class)
-				.getResultList();
+				.setParameter("type", type).getResultList();
 	}
 
-	public List<Region> searchForRegion(String name) {
+	public List<Region> searchForRegion(String type, String name) {
 		return em.createQuery(SEARCH_FOR_REGION_QUERY, Region.class)
-				.setParameter("name", "%" + name.toLowerCase() + "%")
+				.setParameter("name", "%" + name.toLowerCase() + "%").setParameter("type", type)
 				.getResultList();
 	}
 
-	public List<Region> getPaginatedResult(int offset, int limit) {
-		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class)
+	public List<Region> getPaginatedResult(String type, int offset, int limit) {
+		return em.createQuery(GET_ALL_REGIONS_QUERY, Region.class).setParameter("type", type)
 				.setFirstResult(offset).setMaxResults(limit).getResultList();
 	}
 

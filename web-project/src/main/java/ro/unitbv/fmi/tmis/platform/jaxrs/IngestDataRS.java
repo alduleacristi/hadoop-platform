@@ -221,9 +221,9 @@ public class IngestDataRS {
 	}
 
 	private Region saveRegion(int startYear, int endYear, double minLat,
-			double maxLat, double minLon, double maxLon, String regionName)
-			throws JsonGenerationException, JsonMappingException, IOException,
-			FailedToSaveException, AlreadyExistException {
+			double maxLat, double minLon, double maxLon, String regionName,
+			String type) throws JsonGenerationException, JsonMappingException,
+			IOException, FailedToSaveException, AlreadyExistException {
 		Region region = new Region();
 		region.setName(regionName);
 		region.setStartYear(startYear);
@@ -232,6 +232,7 @@ public class IngestDataRS {
 		region.setMinLat(minLat);
 		region.setMinLon(minLon);
 		region.setMaxLon(maxLon);
+		region.setType(type);
 
 		return regionDAO.saveRegion(region);
 	}
@@ -245,6 +246,7 @@ public class IngestDataRS {
 			@NotNull(message = "Min Lon param must not be null") @QueryParam("minLon") Double minLon,
 			@NotNull(message = "Max Lat param must not be null") @QueryParam("maxLon") Double maxLon,
 			@NotNull(message = "Region name must not be null") @QueryParam("regionName") String regionName,
+			@NotNull(message = "Type of region must not be null") @QueryParam("type") String type,
 			@QueryParam("year") int year,
 			@NotNull(message = "Database name must not be null") @QueryParam("dbName") String dbName)
 			throws AlreadyExistException, FailedToIngestException {
@@ -258,7 +260,7 @@ public class IngestDataRS {
 			Integer yearI = Integer.valueOf(nrOfYears);
 
 			region = saveRegion(year - yearI / 2, year + yearI / 2, minLat,
-					maxLat, minLon, maxLon, regionName);
+					maxLat, minLon, maxLon, regionName, type);
 
 			if (year == 0) {
 				ingest(yearI, yearI, regionName, getMinLatId(minLat),

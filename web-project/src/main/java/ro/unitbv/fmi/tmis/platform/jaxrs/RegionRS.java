@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,7 +35,9 @@ public class RegionRS {
 
 	@GET
 	@Path("/region")
-	public List<Region> getRegion(@QueryParam("regionId") Long regionId,
+	public List<Region> getRegion(
+			@NotNull(message = "Type of region must not be null") @QueryParam("type") String type,
+			@QueryParam("regionId") Long regionId,
 			@QueryParam("offset") Integer offset,
 			@QueryParam("limit") Integer limit) {
 		if (regionId != null) {
@@ -47,23 +50,25 @@ public class RegionRS {
 			return regions;
 		} else if (offset != null && limit != null) {
 			if (validateOffsetAndLimit(offset, limit)) {
-				return regionDAO.getPaginatedResult(offset, limit);
+				return regionDAO.getPaginatedResult(type, offset, limit);
 			}
 
 			return null;
 		} else {
-			return regionDAO.getAllRegions();
+			return regionDAO.getAllRegions(type);
 		}
 	}
 
 	@GET
 	@Path("/searchRegion")
-	public List<Region> searchForRegion(@QueryParam("name") String name) {
+	public List<Region> searchForRegion(
+			@NotNull(message = "Type of region must not be null") @QueryParam("type") String type,
+			@QueryParam("name") String name) {
 		if (name == null) {
 			throw new InvalidParameterException("Name could not be null");
 		} else {
 			System.out.println("Region name: " + name);
-			return regionDAO.searchForRegion(name);
+			return regionDAO.searchForRegion(type, name);
 		}
 	}
 }
