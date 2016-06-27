@@ -55,7 +55,7 @@ public class AuthorizationRS {
 			}
 
 			TokenDTO tokenDTO = new TokenDTO();
-			tokenDTO.setClientId(SecurityUtil.encodeUser(user.getEmail()));
+			tokenDTO.setClientId(user.getEmail());
 			tokenDTO.setRoles(roles);
 			tokenDTO.setGeneratedDate(new Date());
 
@@ -83,6 +83,7 @@ public class AuthorizationRS {
 	public Response getPermission() throws NoSuchAlgorithmException,
 			JsonProcessingException {
 		String user = servletRequest.getRemoteUser();
+		System.out.println("Authenticated user [" + user + "]");
 		if (user == null) {
 			return Response.status(Response.Status.UNAUTHORIZED)
 					.entity("You are not authenticated")

@@ -19,6 +19,9 @@ public class TempMinAvgEachYearDAO {
 		em.persist(entity);
 		em.flush();
 		em.refresh(entity);
+		System.out.println("New row inserted for region ["
+				+ entity.getRegion().getName() + "] year [" + entity.getYear()
+				+ "] month [" + entity.getMonth() + "]");
 
 		return entity;
 	}
